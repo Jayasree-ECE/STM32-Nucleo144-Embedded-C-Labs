@@ -1,0 +1,63 @@
+#define TRIG_PIN 12  // Trigger pin
+#define ECHO_PIN 13  // Echo pin
+#define LED_PIN PB0   // Inbuilt-LED Pin
+#define BUTTON_PIN PC13 // Inbuilt Button pin
+
+
+volatile bool calibrationComplete = false;
+float minDistance = 1000;  // Large initial value for calibration
+float maxDistance = 0;     // Small initial value for calibration
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(TRIG_PIN, OUTPUT);
+  pinMode(ECHO_PIN, INPUT);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT);
+
+  // Attach interrupt for the button press
+  attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), completeCalibration, FALLING);
+
+  // Set up PWM for LED pin
+  analogWriteResolution(8);  // 8-bit resolution (0-255)
+}
+
+
+void loop() {
+  if (!calibrationComplete) {
+    float distance = measureDistance();
+
+    // Update min/max distances for calibration
+    if (distance < minDistance) minDistance = distance;
+    if (distance > maxDistance) maxDistance = distance;
+
+    Serial.print("Calibrating... Min: ");
+    Serial.print(minDistance);
+    Serial.print(" cm, Max: ");
+    Serial.println(maxDistance);
+
+    delay(500);  // Slow down calibration readings
+  } else {
+    // After calibration, use distance to control LED brightness
+    float currentDistance = measureDistanceSmooth(10);
+    int brightness = map(currentDistance, minDistance, maxDistance, 0, 255);  // Map distance to brightness
+    brightness = constrain(brightness, 0, 255);  // Ensure the value stays within 0-255 range
+
+    analogWrite(LED_PIN, brightness);  // Set LED brightness
+
+    Serial.print("Distance(cm):");
+    Serial.print(currentDistance);
+    Serial.print(",LED Brightness:");
+    Serial.println(brightness);
+
+    delay(200);  // Slow down the readings
+  }
+}
+
+/* Measuring functions*/
+
+// Button interrupt handler to stop calibration
+void completeCalibration() {
+  calibrationComplete = true;
+  Serial.println("Calibration complete.");
+}
