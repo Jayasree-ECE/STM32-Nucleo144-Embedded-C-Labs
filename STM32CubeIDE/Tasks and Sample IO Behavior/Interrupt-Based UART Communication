@@ -1,0 +1,31 @@
+/* USER CODE BEGIN PV */
+
+uint8_t rxBuffer[1];  // Buffer to store received data
+// Try changing the buffer size
+
+/* USER CODE END PV */
+
+
+void main(void){
+
+  /* USER CODE BEGIN 2 */
+
+  // Start interrupt-based reception
+  HAL_UART_Receive_IT(&huart3, rxBuffer, 1);
+
+  /* USER CODE END 2 */
+}
+  
+
+/* USER CODE BEGIN 4 */
+// Interrupt callback function
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+    if (huart->Instance == USART3) {
+        // Echo received data
+        HAL_UART_Transmit(&huart3, rxBuffer, 1, HAL_MAX_DELAY);
+
+        // Restart reception
+        HAL_UART_Receive_IT(&huart3, rxBuffer, 1);
+    }
+}
+/* USER CODE END 4 */
