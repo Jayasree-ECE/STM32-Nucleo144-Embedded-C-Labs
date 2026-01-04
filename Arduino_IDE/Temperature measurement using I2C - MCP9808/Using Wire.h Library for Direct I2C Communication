@@ -1,0 +1,70 @@
+#include <Wire.h>
+
+#define MCP9808_I2C_ADDRESS 0x18  // Default I2C address for MCP9808
+#define AMBIENT_TEMP_REG 0x05     // Ambient temperature register
+#define RESOLUTION_REG 0x08       // Resolution register
+#define RESOLUTION_0_0625_DEGREE 0x03 // Highest resolution
+
+void setup() {
+  Wire.begin();
+  Serial.begin(9600);
+
+  // Initialize the sensor
+  if (initSensor()) {
+    Serial.println("Sensor init failed.");
+  } else {
+    Serial.println("Sensor init success.");
+  }
+}
+
+void loop() {
+  float celsius = readTemperature();
+  float fahrenheit = celsius * 9.0 / 5.0 + 32;
+
+  Serial.print("Temperature: ");
+  Serial.print(celsius);
+  Serial.print(" C / ");
+  Serial.print(fahrenheit);
+  Serial.println(" F");
+
+  delay(1000);  // Wait 1 second before reading the temperature again
+}
+
+// Function to initialize the sensor
+bool initSensor() {
+  Wire.beginTransmission(MCP9808_I2C_ADDRESS);
+  Wire.write(RESOLUTION_REG);           // Set the resolution register
+  Wire.write(RESOLUTION_0_0625_DEGREE); // Set highest resolution (0.0625°C)
+  return (Wire.endTransmission() != 0); // Check for I2C transmission success
+}
+
+// Function to read temperature from the MCP9808 sensor
+float readTemperature() {
+  Wire.beginTransmission(MCP9808_I2C_ADDRESS);
+  Wire.write(AMBIENT_TEMP_REG);  // Set pointer to the temperature register
+  Wire.endTransmission();
+
+  Wire.requestFrom(MCP9808_I2C_ADDRESS, 2);  // Request 2 bytes from sensor
+
+  if (Wire.available() < 2) {
+    return NAN;  // If data not available, return not-a-number (NAN)
+  }
+
+  // Read the 2 bytes of temperature data
+  uint8_t msb = Wire.read();
+  uint8_t lsb = Wire.read();
+
+  // Combine the two bytes into a 16-bit unsigned integer
+  uint16_t rawTemp = ((uint16_t)msb << 8) | lsb;
+
+  // Mask out the sign bit (bit 12) and calculate the temperature
+  rawTemp &= 0x0FFF;
+  float temp = rawTemp * 0.0625;  // Each increment represents 0.0625°C
+
+  // If the sign bit is set, the temperature is negative
+  if (msb & 0x10) {
+    temp -= 256;
+  }
+
+  return temp;
+}
