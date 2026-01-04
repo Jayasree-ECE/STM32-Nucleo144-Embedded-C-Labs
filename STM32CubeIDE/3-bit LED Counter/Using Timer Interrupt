@@ -1,0 +1,31 @@
+/* USER CODE BEGIN PV */
+volatile uint8_t counter = 0;  // 3-bit counter
+/* USER CODE END PV */
+
+/* USER CODE BEGIN 0 */
+void increment_counter(void) {
+    counter = (counter + 1) % 8;  // Increment counter and wrap around using modulo
+    // Set LED states based on counter value
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_0, (counter & 0x01) ? GPIO_PIN_SET : GPIO_PIN_RESET);  // LD1 (LSB)
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_7, (counter & 0x02) ? GPIO_PIN_SET : GPIO_PIN_RESET);  // LD2
+    HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, (counter & 0x04) ? GPIO_PIN_SET : GPIO_PIN_RESET); // LD3 (MSB)
+}
+/* USER CODE END 0 */
+
+int main(void) {
+
+  /* USER CODE BEGIN 2 */
+  // Start timer in interrupt mode
+  HAL_TIM_Base_Start_IT(&htim7);
+  /* USER CODE END 2 */
+
+}
+
+/* USER CODE BEGIN 4 */
+// Timer interrupt callback
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == TIM7) {
+        increment_counter();  // Update LED states based on counter value
+    }
+}
+/* USER CODE END 4 */
