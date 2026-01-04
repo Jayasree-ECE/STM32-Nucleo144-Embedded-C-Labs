@@ -1,0 +1,29 @@
+
+/* pin configurations*/
+
+/* setup goes here*/
+
+void loop() {
+  // Print the average distance to the Serial Monitor
+  Serial.print("Distance: ");
+  Serial.print(measureDistanceSmooth(10));  // Averaging 10 measurements
+  Serial.println(" cm");
+
+  delay(1000);  // Delay before taking another set of measurements
+}
+
+/* Measure Distance Function */
+
+float measureDistanceSmooth(int numMeasurements) {
+  float totalDistance = 0.0;
+
+  // Take multiple measurements
+  for (int i = 0; i < numMeasurements; i++) {
+    // Add to the total distance for averaging
+    totalDistance += measureDistance();
+    delay(5);  // Small delay between measurements
+  }
+
+  // return the average distance
+  return totalDistance / numMeasurements;
+}
