@@ -1,0 +1,26 @@
+#include "Seeed_MCP9808.h"
+
+MCP9808 sensor;
+
+void setup() {
+  Serial.begin(9600);
+  if (sensor.init()) {
+    Serial.println("Sensor init failed.");
+    return;
+  }
+  Serial.println("Sensor init success.");
+}
+
+void loop() {
+  float celsius = 0;
+  sensor.get_temp(&celsius);
+
+  float fahrenheit = celsius * 9 / 5 + 32;
+
+  Serial.print("Temperature: ");
+  Serial.print(celsius);
+  Serial.print("C/");
+  Serial.print(fahrenheit);
+  Serial.println("F");
+  delay(1000);
+}
