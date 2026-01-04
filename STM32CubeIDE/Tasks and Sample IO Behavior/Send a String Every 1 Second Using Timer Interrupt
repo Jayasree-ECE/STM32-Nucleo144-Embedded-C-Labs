@@ -1,0 +1,25 @@
+/* USER CODE BEGIN PV */
+volatile uint64_t counter = 0; // to keep track of the number of times printed
+/* USER CODE END PV */
+
+int main(void) {
+
+  /* USER CODE BEGIN 2 */
+  // Start timer in interrupt mode
+  HAL_TIM_Base_Start_IT(&htim7);
+  /* USER CODE END 2 */
+
+}
+
+/* USER CODE BEGIN 4 */
+// Timer interrupt callback function
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == TIM7) {
+        // Send message every second
+        uint8_t msg[50];
+        uint8_t n_bytes = sprintf(msg,"STM32 Timer Test %lu \n\r", counter);
+        HAL_UART_Transmit(&huart3, msg, n_bytes, HAL_MAX_DELAY);
+        counter++;
+    }
+}
+/* USER CODE END 4 */
