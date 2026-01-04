@@ -1,0 +1,69 @@
+#include "Wire.h"
+#include "MPU6050.h"
+
+MPU6050 accelgyro;
+
+int16_t ax, ay, az;
+int16_t gx, gy, gz;
+
+
+void setup() {
+  Wire.begin();
+  Serial.begin(115200);
+
+  // initialize device
+  Serial.println("Initializing I2C devices...");
+  accelgyro.initialize();
+  Serial.println("Testing device connections...");
+  Serial.println(accelgyro.testConnection() ? "MPU6050 connection successful" : "MPU6050 connection failed");
+}
+
+void loop() {
+
+  getMotion6Smooth(&ax, &ay, &az, &gx, &gy, &gz, 20);
+  // Display averaged values
+  Serial.print("ax:");
+  Serial.print(ax);
+  Serial.print(",");
+  Serial.print("ay:");
+  Serial.print(ay);
+  Serial.print(",");
+  Serial.print("az:");
+  Serial.print(az);
+  Serial.print(",");
+  Serial.print("gx:");
+  Serial.print(gx);
+  Serial.print(",");
+  Serial.print("gy:");
+  Serial.print(gy);
+  Serial.print(",");
+  Serial.print("gz:");
+  Serial.println(gz);
+  delay(10);
+
+}
+
+void getMotion6Smooth(int16_t* ax, int16_t* ay, int16_t* az, int16_t* gx, int16_t* gy, int16_t* gz, int nSamples) {
+  // Initialize totals
+  long axTotal = 0, ayTotal = 0, azTotal = 0;
+  long gxTotal = 0, gyTotal = 0, gzTotal = 0;
+
+  // Collect 20 samples
+  for (int i = 0; i < nSamples; i++) {
+    accelgyro.getMotion6(ax, ay, az, gx, gy, gz);
+    axTotal += *ax;
+    ayTotal += *ay;
+    azTotal += *az;
+    gxTotal += *gx;
+    gyTotal += *gy;
+    gzTotal += *gz;
+  }
+
+  // Calculate average
+  *ax = axTotal / nSamples;
+  *ay = ayTotal / nSamples;
+  *az = azTotal / nSamples;
+  *gx = gxTotal / nSamples;
+  *gy = gyTotal / nSamples;
+  *gz = gzTotal / nSamples;
+}
