@@ -1,0 +1,10 @@
+void main(void){
+
+  /* USER CODE BEGIN 2 */
+
+  uint8_t msg[] = "Hello, UART!";
+  HAL_UART_Transmit(&huart3, msg, sizeof(msg)-1, HAL_MAX_DELAY);  // Transmit the message
+
+  /* USER CODE END 2 */
+
+}
